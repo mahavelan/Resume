@@ -1,5 +1,4 @@
 # --- Streamlit Resume-Based AI HR App ---
-
 import streamlit as st
 from PyPDF2 import PdfReader
 from docx import Document
