@@ -56,16 +56,16 @@ if "page" not in st.session_state:
 if st.session_state["page"] == "home":
     st.image("https://i.imgur.com/z5uK45N.png", width=200)
     st.title("Welcome to INTELLIHIRE")
-    option = st.radio("Choose login method:", ["Email Login", "Continue with Google"])
 
-    if option == "Email Login":
-        username = st.text_input("Username")
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        if st.button("Login"):
-            st.session_state["page"] = "dashboard"
-    elif option == "Continue with Google":
-        st.info("Redirecting to Google OAuth (Feature to be implemented)")
+    st.subheader("🔐 Email Login")
+    username = st.text_input("Username")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    
+    if st.button("Login"):
+        # Optional: validate credentials here
+        st.session_state["page"] = "dashboard"
+
 
 # --- Dashboard ---
 elif st.session_state["page"] == "dashboard":
