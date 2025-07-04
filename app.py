@@ -54,7 +54,7 @@ if "page" not in st.session_state:
 
 # --- Home Page ---
 if st.session_state["page"] == "home":
-    st.image("https://i.imgur.com/z5uK45N.png", width=200)
+    st.image("Tech Recruitment Service Logo INTELLIHIRE.png", width=200)
     st.title("Welcome to INTELLIHIRE")
 
     st.subheader("🔐 Email Login")
