@@ -2,13 +2,30 @@
 import streamlit as st
 import re
 import os
+import json
 from PyPDF2 import PdfReader
-  # PyPDF2 < 2.0.0
-
 from docx import Document
 
-# --- Simulated Databases ---
-users = {}
+USERS_FILE = "users.json"
+
+# --- Load / Save Users from File ---
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_users(users_dict):
+    with open(USERS_FILE, "w") as f:
+        json.dump(users_dict, f, indent=4)
+
+# --- Initialize State ---
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+if "users" not in st.session_state:
+    st.session_state["users"] = load_users()
+
+# --- Simulated Company/Job DB ---
 companies = {}
 resumes = {}
 jobs = {
@@ -18,20 +35,10 @@ jobs = {
 
 st.set_page_config(page_title="INTELLIHIRE", layout="wide")
 
-# --- Helper Functions ---
+# --- Resume Processing ---
 def extract_text_from_pdf(file):
-    try:
-        reader = PdfReader(file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
-    except Exception:
-        reader = PdfReader(file)
-        text = ""
-        for i in range(reader.getNumPages()):
-            page = reader.getPage(i)
-            text += page.extractText() + "\n"
-    return text
+    reader = PdfReader(file)
+    return "\n".join(page.extract_text() for page in reader.pages)
 
 def extract_text_from_docx(file):
     doc = Document(file)
@@ -48,48 +55,42 @@ def match_jobs(user_skills):
             matched.append(company)
     return matched
 
-# --- Pages ---
-if "page" not in st.session_state:
-    st.session_state["page"] = "home"
-
-# --- Home Page ---
+# --- Home/Login/Signup ---
 if st.session_state["page"] == "home":
     st.image("Tech Recruitment Service Logo INTELLIHIRE.png", width=200)
     st.title("Welcome to INTELLIHIRE")
-
     auth_choice = st.radio("Select Option:", ["Login", "Sign Up"])
 
     if auth_choice == "Login":
-        st.subheader("🔐 Login with Email")
+        st.subheader("\U0001F510 Login with Email")
         login_email = st.text_input("Email", key="login_email")
         login_password = st.text_input("Password", type="password", key="login_pass")
 
         if st.button("Login"):
+            users = st.session_state["users"]
             if login_email in users and users[login_email]["password"] == login_password:
                 st.success("Login successful!")
                 st.session_state["logged_in"] = True
                 st.session_state["page"] = "dashboard"
+                st.experimental_rerun()
             else:
                 st.error("Invalid email or password.")
 
     elif auth_choice == "Sign Up":
-        st.subheader("📝 Create New Account")
+        st.subheader("\U0001F4DD Create New Account")
         new_username = st.text_input("Username", key="signup_username")
         new_email = st.text_input("Email", key="signup_email")
         new_password = st.text_input("Password", type="password", key="signup_pass")
 
         if st.button("Sign Up"):
+            users = st.session_state["users"]
             if new_email in users:
                 st.warning("Email already exists. Please log in.")
             else:
                 users[new_email] = {"username": new_username, "password": new_password}
-                st.success("Sign-up successful! Please log in now.")
-
-# Auto-login if already authenticated
-if st.session_state.get("logged_in") and st.session_state["page"] == "home":
-    st.session_state["page"] = "dashboard"
-    st.experimental_rerun()
-
+                st.session_state["users"] = users
+                save_users(users)
+                st.success("Sign-up successful! Please log in.")
 
 # --- Dashboard ---
 elif st.session_state["page"] == "dashboard":
@@ -121,12 +122,7 @@ elif st.session_state["page"] == "dashboard":
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
 
     if uploaded_file:
-        file_type = uploaded_file.type
-        if "pdf" in file_type:
-            text = extract_text_from_pdf(uploaded_file)
-        else:
-            text = extract_text_from_docx(uploaded_file)
-
+        text = extract_text_from_pdf(uploaded_file) if "pdf" in uploaded_file.type else extract_text_from_docx(uploaded_file)
         skills = extract_skills(text)
         st.write("Extracted Skills:", skills)
         matched_companies = match_jobs(skills)
@@ -137,18 +133,18 @@ elif st.session_state["page"] == "dashboard":
         else:
             st.warning("No company match found. Proceeding to AI training...")
             st.session_state["page"] = "training"
-            st.session_state["return_after_training"] = True  # Set return flag
             st.experimental_rerun()
 
-# --- Training Page ---
+# --- AI Training Page ---
 elif st.session_state["page"] == "training":
     st.header("AI-Based Training")
     st.image("https://i.imgur.com/AvU0i8I.png", width=100)
     st.write("AI HR: Tell me about yourself.")
-    if st.button("🎙️ Click to Answer"):
+    if st.button("\U0001F399️ Click to Answer"):
         st.info("Recording... (simulated)")
         st.info("Timeout reached. Showing ideal answer:")
         st.success("Ideal Answer: I'm a recent graduate with experience in Python and ML...")
+
     score = st.slider("AI Rating (out of 10)", 0, 10, 7)
     if score < 6:
         st.warning("You scored below 6. Please retake the mock interview.")
@@ -160,7 +156,7 @@ elif st.session_state["page"] == "training":
 
     # --- LAKS Chatbot ---
     st.markdown("---")
-    st.subheader("📚 Ask LAKS (Study Support Only)")
+    st.subheader("\U0001F4DA Ask LAKS (Study Support Only)")
     user_input = st.text_input("Ask a question:")
     if user_input:
         if any(word in user_input.lower() for word in ["joke", "date", "abuse", "fight"]):
@@ -175,3 +171,4 @@ if "abuse_count" not in st.session_state:
 if st.session_state["abuse_count"] >= 3:
     st.error("You have been blocked for misuse. Please try again in 7 days.")
     st.stop()
+
