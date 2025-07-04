@@ -4,6 +4,7 @@ import openai
 from streamlit_chat import message
 import os
 import json
+import time
 from dotenv import load_dotenv
 
 # --- Load API Key (For Streamlit Cloud use secrets) ---
@@ -59,7 +60,7 @@ def auth_ui():
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = False
                 st.session_state.user_email = email
-                st.session_state.user_profile = users[email]["profile"]
+                st.session_state.user_profile = users[email].get("profile", {})
                 st.success("✅ Logged in as User")
                 st.experimental_rerun()
             else:
@@ -180,10 +181,10 @@ if not match_found:
         st.info("No companies registered yet. Please wait until companies are added.")
         st.stop()
 
-# --- Ask AI Dynamically ---
+# --- Ask AI Dynamically (with simulated voice/video logic) ---
 if st.button("Start AI Interview"):
-    company_req = companies[st.session_state.selected_company]["skills"]
-    user_resume = users[st.session_state.user_email].get("resume", "")
+    company_req = companies.get(st.session_state.selected_company, {}).get("skills", [])
+    user_resume = users.get(st.session_state.user_email, {}).get("resume", "")
     level_tag = f"Interview Difficulty: {level}"
 
     prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
@@ -196,12 +197,25 @@ if st.button("Start AI Interview"):
         ]
     )
     question = response.choices[0].message.content
-    st.subheader("💬 AI HR Interviewer:")
-    st.info(question)
-    answer = st.text_area("🎙️ Your Answer (or respond via voice in future phase)")
+    st.subheader("📹 IntelliHire AI Interview (Simulated Video Call)")
+    st.info("💬 AI: " + question)
+    st.write("🎤 Please answer through your mic (simulated). If silent for 10 seconds, AI will show the answer here.")
 
+    time.sleep(10)
+    # Simulated fallback answer (AI responds automatically)
+    fallback_answer = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Provide a model answer to this question."},
+            {"role": "user", "content": question}
+        ]
+    )
+    st.warning("🕒 Time's up! Here's what AI expected:")
+    st.code(fallback_answer.choices[0].message.content)
+
+    user_answer = st.text_area("Your Answer (optional text reply)")
     if st.button("Submit Answer"):
-        feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
+        feedback_prompt = f"This is the candidate's answer: {user_answer}. Provide feedback as an HR interviewer."
         feedback = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
