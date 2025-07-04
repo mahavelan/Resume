@@ -14,6 +14,7 @@ openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 # --- Constants ---
 USER_FILE = "users.json"
 COMPANY_FILE = "companies.json"
+INTERVIEW_SCHEDULE_FILE = "interview_schedules.json"
 
 # --- Utility Functions ---
 def load_json(file):
@@ -28,6 +29,7 @@ def save_json(data, file):
 
 users = load_json(USER_FILE)
 companies = load_json(COMPANY_FILE)
+schedules = load_json(INTERVIEW_SCHEDULE_FILE)
 
 # --- Session State Initialization ---
 def init_session():
@@ -88,6 +90,7 @@ if st.session_state.owner_mode:
 
     st.metric("Total Users", len(users))
     st.metric("Total Companies", len(companies))
+    st.metric("Scheduled Interviews", len(schedules))
 
     if st.sidebar.button("Delete All Users"):
         users.clear()
@@ -144,6 +147,24 @@ if uploaded:
     save_json(users, USER_FILE)
     st.success("Resume uploaded and stored.")
 
+    matched = []
+    for cname, cdata in companies.items():
+        if any(skill.strip().lower() in resume_text.lower() for skill in cdata["skills"]):
+            matched.append(cname)
+
+    if matched:
+        st.success("🎯 Resume matches with the following companies:")
+        for c in matched:
+            st.write(f"✅ {c}")
+            scheduled = schedules.get(st.session_state.user_email, {}).get(c, {})
+            if scheduled.get("status") == "selected":
+                st.info(f"🗓️ Interview Scheduled: {scheduled.get('date')} at {scheduled.get('time')} ({scheduled.get('mode')})")
+            elif scheduled.get("status") == "rejected":
+                st.warning("❌ Resume rejected. Feedback:")
+                st.text(scheduled.get("feedback", "Not provided"))
+    else:
+        st.warning("No companies found matching your resume skills.")
+
 # --- Company Registration ---
 st.header("🏢 Company Registration")
 with st.form("company_form"):
@@ -159,72 +180,6 @@ with st.form("company_form"):
         save_json(companies, COMPANY_FILE)
         st.success(f"{cname} registered!")
 
-# --- AI Interview Mode ---
-st.header("🧠 AI Mock Interview")
-level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All"])
-st.session_state.selected_level = level
-
-match_found = False
-resume_text = users.get(st.session_state.user_email, {}).get("resume", "")
-
-for cname, cdata in companies.items():
-    if resume_text and any(skill.strip().lower() in resume_text.lower() for skill in cdata.get("skills", [])):
-        match_found = True
-        st.session_state.selected_company = cname
-        break
-
-if not match_found:
-    st.warning("No matching company found. You can still practice with any registered company.")
-    if companies:
-        st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
-    else:
-        st.info("No companies registered yet. Please wait until companies are added.")
-        st.stop()
-
-# --- Ask AI Dynamically (with simulated voice/video logic) ---
-if st.button("Start AI Interview"):
-    company_req = companies.get(st.session_state.selected_company, {}).get("skills", [])
-    user_resume = users.get(st.session_state.user_email, {}).get("resume", "")
-    level_tag = f"Interview Difficulty: {level}"
-
-    prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": level_tag},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    question = response.choices[0].message.content
-    st.subheader("📹 IntelliHire AI Interview (Simulated Video Call)")
-    st.info("💬 AI: " + question)
-    st.write("🎤 Please answer through your mic (simulated). If silent for 10 seconds, AI will show the answer here.")
-
-    time.sleep(10)
-    # Simulated fallback answer (AI responds automatically)
-    fallback_answer = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Provide a model answer to this question."},
-            {"role": "user", "content": question}
-        ]
-    )
-    st.warning("🕒 Time's up! Here's what AI expected:")
-    st.code(fallback_answer.choices[0].message.content)
-
-    user_answer = st.text_area("Your Answer (optional text reply)")
-    if st.button("Submit Answer"):
-        feedback_prompt = f"This is the candidate's answer: {user_answer}. Provide feedback as an HR interviewer."
-        feedback = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Give detailed feedback"},
-                {"role": "user", "content": feedback_prompt}
-            ]
-        )
-        st.success(feedback.choices[0].message.content)
-
 # --- LAKS Chat ---
 st.header("📚 Ask LAKS Anything")
 with st.form("laks_chat", clear_on_submit=True):
@@ -233,7 +188,7 @@ with st.form("laks_chat", clear_on_submit=True):
 if send and user_input:
     st.session_state.chat_history = st.session_state.chat_history or []
     st.session_state.chat_history.append({"role": "user", "content": user_input})
-    reply = openai.ChatCompletion.create(
+    reply = openai.chat.completions.create(
         model="gpt-4",
         messages=st.session_state.chat_history
     )
@@ -244,3 +199,39 @@ if send and user_input:
 # --- History Management ---
 if st.button("Clear Chat History"):
     st.session_state.chat_history = []
+
+# --- AI Mock Interview ---
+st.header("🎥 AI Video Mock Interview")
+st.write("**Note**: This simulates a voice-enabled session with fallback chat. Camera not required.")
+
+level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All"])
+st.session_state.selected_level = level
+
+if st.button("Start AI Mock Interview"):
+    company_req = [s for c in companies.values() for s in c["skills"]]
+    resume = users[st.session_state.user_email].get("resume", "")
+    prompt = f"Conduct a {level.lower()} level technical interview based on resume: {resume}. Required skills: {company_req}."
+
+    response = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a virtual HR conducting a technical interview."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    question = response.choices[0].message.content
+    st.subheader("🗣️ AI Interview Question")
+    st.info(question)
+
+    with st.chat_message("You"):
+        answer = st.text_area("Your response (or speak during live session)")
+        if st.button("Submit Answer"):
+            feedback_prompt = f"Provide detailed feedback to this candidate answer: {answer}"
+            feedback = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You're a senior HR giving constructive feedback."},
+                    {"role": "user", "content": feedback_prompt}
+                ]
+            )
+            st.success(feedback.choices[0].message.content)
