@@ -3,7 +3,7 @@ import streamlit as st
 import re
 import os
 import json
-from datetime import datetime
+from datetime import datetime, date
 from PyPDF2 import PdfReader
 from docx import Document
 
@@ -70,7 +70,7 @@ if st.session_state["page"] == "home":
     auth_choice = st.radio("Select Option:", ["Login", "Sign Up", "Forgot Password"])
 
     if auth_choice == "Login":
-        st.subheader("🔐 Login with Email")
+        st.subheader("\U0001F510 Login with Email")
         login_email = st.text_input("Email", key="login_email")
         login_password = st.text_input("Password", type="password", key="login_pass")
 
@@ -84,7 +84,7 @@ if st.session_state["page"] == "home":
                 st.error("Invalid email or password.")
 
     elif auth_choice == "Sign Up":
-        st.subheader("📝 Create New Account")
+        st.subheader("\U0001F4DD Create New Account")
         new_username = st.text_input("Username", key="signup_username")
         new_email = st.text_input("Email", key="signup_email")
         new_password = st.text_input("Password", type="password", key="signup_pass")
@@ -98,7 +98,7 @@ if st.session_state["page"] == "home":
                 st.success("Sign-up successful! Please log in now.")
 
     elif auth_choice == "Forgot Password":
-        st.subheader("🔑 Reset Password")
+        st.subheader("\U0001F511 Reset Password")
         forgot_email = st.text_input("Enter your email")
         new_pass = st.text_input("Enter new password", type="password")
         if st.button("Reset"):
@@ -122,7 +122,7 @@ elif st.session_state["page"] == "dashboard":
     if option == "User Profile":
         st.subheader("Create Profile")
         name = st.text_input("Name")
-        dob = st.date_input("Date of Birth",min_value = datetime.date(1980, 1, 1))
+        dob = st.date_input("Date of Birth", min_value=date(1980, 1, 1))
         gender = st.selectbox("Gender", ["Male", "Female", "Other"])
         email = st.text_input("Email ID", value=st.session_state.get("user_email", ""))
         address = st.text_input("Address")
@@ -167,7 +167,7 @@ elif st.session_state["page"] == "training":
     st.header("AI-Based Training")
     st.image("https://i.imgur.com/AvU0i8I.png", width=100)
     st.write("AI HR: Tell me about yourself.")
-    if st.button("🎙️ Click to Answer"):
+    if st.button("\U0001F399️ Click to Answer"):
         st.info("Recording... (simulated)")
         st.info("Timeout reached. Showing ideal answer:")
         st.success("Ideal Answer: I'm a recent graduate with experience in Python and ML...")
@@ -182,7 +182,7 @@ elif st.session_state["page"] == "training":
         st.success("Practice session started...")
 
     st.markdown("---")
-    st.subheader("📚 Ask LAKS (Study Support Only)")
+    st.subheader("\U0001F4DA Ask LAKS (Study Support Only)")
     user_input = st.text_input("Ask a question:")
     if user_input:
         if any(word in user_input.lower() for word in ["joke", "date", "abuse", "fight"]):
