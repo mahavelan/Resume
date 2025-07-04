@@ -1,6 +1,4 @@
-streamlit
-PyPDF2>=2.0.0
-python-docx
+
 streamlit>=1.20.0
 PyPDF2>=2.0.0
 python-docx>=0.8.11
