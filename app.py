@@ -18,12 +18,25 @@ jobs = {
 st.set_page_config(page_title="INTELLIHIRE", layout="wide")
 
 # --- Helper Functions ---
+try:
+    from PyPDF2 import PdfReader  # PyPDF2 ≥ 2.0.0
+except ImportError:
+    from PyPDF2 import PdfFileReader as PdfReader  # PyPDF2 < 2.0.0
+
 def extract_text_from_pdf(file):
-    reader = PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
+    try:
+        reader = PdfReader(file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\\n"
+    except Exception:
+        reader = PdfReader(file)
+        text = ""
+        for i in range(reader.getNumPages()):
+            page = reader.getPage(i)
+            text += page.extractText() + "\\n"
     return text
+
 
 def extract_text_from_docx(file):
     doc = Document(file)
