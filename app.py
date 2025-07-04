@@ -59,7 +59,7 @@ def auth_ui():
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = False
                 st.session_state.user_email = email
-                st.session_state.user_profile = users[email]
+                st.session_state.user_profile = users[email]["profile"]
                 st.success("✅ Logged in as User")
                 st.experimental_rerun()
             else:
@@ -151,7 +151,7 @@ with st.form("company_form"):
     location = st.text_input("Location")
     email = st.text_input("Company Email (for resumes)")
     skills = st.text_area("Required Skills (comma-separated)")
-    logo = st.file_uploader("Company Logo or picture (optional)", type=["jpg", "jpeg", "png"])
+    logo = st.file_uploader("Company Logo (optional)", type=["jpg", "jpeg", "png"])
     reg_submit = st.form_submit_button("Register Company")
     if reg_submit:
         companies[cname] = {"email": email, "skills": skills.split(","), "location": location, "branch": branch}
@@ -167,17 +167,21 @@ match_found = False
 resume_text = users.get(st.session_state.user_email, {}).get("resume", "")
 
 for cname, cdata in companies.items():
-    if resume_text and any(skill.strip().lower() in resume_text.lower() for skill in cdata["skills"]):
+    if resume_text and any(skill.strip().lower() in resume_text.lower() for skill in cdata.get("skills", [])):
         match_found = True
         st.session_state.selected_company = cname
         break
 
 if not match_found:
     st.warning("No matching company found. You can still practice with any registered company.")
-    st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
+    if companies:
+        st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
+    else:
+        st.info("No companies registered yet. Please wait until companies are added.")
+        st.stop()
 
 # --- Ask AI Dynamically ---
-if st.button("Start Interview"):
+if st.button("Start AI Interview"):
     company_req = companies[st.session_state.selected_company]["skills"]
     user_resume = users[st.session_state.user_email].get("resume", "")
     level_tag = f"Interview Difficulty: {level}"
