@@ -54,12 +54,14 @@ def auth_ui():
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = True
                 st.success("✅ Logged in as Owner")
+                st.experimental_rerun()
             elif email in users and users[email]["password"] == password:
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = False
                 st.session_state.user_email = email
                 st.session_state.user_profile = users[email]
                 st.success("✅ Logged in as User")
+                st.experimental_rerun()
             else:
                 st.error("Invalid credentials")
 
@@ -74,18 +76,23 @@ def auth_ui():
                 save_json(users, USER_FILE)
                 st.success("User registered! Now log in.")
 
-   
-   
 if not st.session_state.logged_in:
     auth_ui()
-    st.stop() 
+    st.stop()
+
 # --- Owner Panel ---
 if st.session_state.owner_mode:
-    st.sidebar.header("🛠️ Owner Tools")
+    st.title("🛠️ Owner Dashboard")
+    st.sidebar.header("Owner Tools")
+
+    st.metric("Total Users", len(users))
+    st.metric("Total Companies", len(companies))
+
     if st.sidebar.button("Delete All Users"):
         users.clear()
         save_json(users, USER_FILE)
         st.sidebar.success("All users deleted")
+
     if st.sidebar.button("Delete All Companies"):
         companies.clear()
         save_json(companies, COMPANY_FILE)
@@ -103,9 +110,6 @@ if st.session_state.owner_mode:
         save_json(companies, COMPANY_FILE)
         st.sidebar.success(f"Deleted {search_company}")
 
-    st.subheader("📊 Platform Analytics")
-    st.metric("Total Users", len(users))
-    st.metric("Total Companies", len(companies))
     st.stop()
 
 # --- User Interface ---
@@ -147,7 +151,7 @@ with st.form("company_form"):
     location = st.text_input("Location")
     email = st.text_input("Company Email (for resumes)")
     skills = st.text_area("Required Skills (comma-separated)")
-    logo = st.file_uploader("Company Logo (optional)", type=["jpg", "jpeg", "png"])
+    logo = st.file_uploader("Company Logo or picture (optional)", type=["jpg", "jpeg", "png"])
     reg_submit = st.form_submit_button("Register Company")
     if reg_submit:
         companies[cname] = {"email": email, "skills": skills.split(","), "location": location, "branch": branch}
@@ -160,8 +164,10 @@ level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All
 st.session_state.selected_level = level
 
 match_found = False
+resume_text = users.get(st.session_state.user_email, {}).get("resume", "")
+
 for cname, cdata in companies.items():
-    if any(skill.strip().lower() in users[st.session_state.user_email]["resume"].lower() for skill in cdata["skills"]):
+    if resume_text and any(skill.strip().lower() in resume_text.lower() for skill in cdata["skills"]):
         match_found = True
         st.session_state.selected_company = cname
         break
@@ -171,9 +177,9 @@ if not match_found:
     st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
 
 # --- Ask AI Dynamically ---
-if st.button("Start AI Interview"):
+if st.button("Start Interview"):
     company_req = companies[st.session_state.selected_company]["skills"]
-    user_resume = users[st.session_state.user_email]["resume"]
+    user_resume = users[st.session_state.user_email].get("resume", "")
     level_tag = f"Interview Difficulty: {level}"
 
     prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
