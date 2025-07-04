@@ -2,7 +2,7 @@
 import streamlit as st
 import re
 import os
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReade
   # PyPDF2 < 2.0.0
 
 from docx import Document
