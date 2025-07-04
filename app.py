@@ -1,10 +1,15 @@
 # --- Streamlit Resume-Based AI HR App ---
 import streamlit as st
-from PyPDF2 import PdfReader
-from docx import Document
 import re
-import base64
 import os
+
+# --- Attempting Safe Import for PdfReader ---
+try:
+    from PyPDF2 import PdfReader  # PyPDF2 ≥ 2.0.0
+except ImportError:
+    from PyPDF2 import PdfFileReader as PdfReader  # PyPDF2 < 2.0.0
+
+from docx import Document
 
 # --- Simulated Databases ---
 users = {}
@@ -18,25 +23,19 @@ jobs = {
 st.set_page_config(page_title="INTELLIHIRE", layout="wide")
 
 # --- Helper Functions ---
-try:
-    from PyPDF2 import PdfReader  # PyPDF2 ≥ 2.0.0
-except ImportError:
-    from PyPDF2 import PdfFileReader as PdfReader  # PyPDF2 < 2.0.0
-
 def extract_text_from_pdf(file):
     try:
         reader = PdfReader(file)
         text = ""
         for page in reader.pages:
-            text += page.extract_text() + "\\n"
+            text += page.extract_text() + "\n"
     except Exception:
         reader = PdfReader(file)
         text = ""
         for i in range(reader.getNumPages()):
             page = reader.getPage(i)
-            text += page.extractText() + "\\n"
+            text += page.extractText() + "\n"
     return text
-
 
 def extract_text_from_docx(file):
     doc = Document(file)
@@ -59,7 +58,7 @@ if "page" not in st.session_state:
 
 # --- Home Page ---
 if st.session_state["page"] == "home":
-    st.image("https://i.imgur.com/z5uK45N.png", width=200)  # Replace with your logo
+    st.image("https://i.imgur.com/z5uK45N.png", width=200)
     st.title("Welcome to INTELLIHIRE")
     option = st.radio("Choose login method:", ["Email Login", "Continue with Google"])
 
@@ -122,7 +121,7 @@ elif st.session_state["page"] == "dashboard":
 # --- Training Page ---
 elif st.session_state["page"] == "training":
     st.header("AI-Based Training")
-    st.image("https://i.imgur.com/AvU0i8I.png", width=100)  # HR avatar
+    st.image("https://i.imgur.com/AvU0i8I.png", width=100)
     st.write("AI HR: Tell me about yourself.")
     if st.button("🎙️ Click to Answer"):
         st.info("Recording... (simulated)")
@@ -137,7 +136,7 @@ elif st.session_state["page"] == "training":
     if st.button("Start Practice Interview"):
         st.success("Practice session started...")
 
-# --- LAKS Chatbot ---
+    # --- LAKS Chatbot ---
     st.markdown("---")
     st.subheader("📚 Ask LAKS (Study Support Only)")
     user_input = st.text_input("Ask a question:")
@@ -148,7 +147,6 @@ elif st.session_state["page"] == "training":
             st.success("AI Answer: Here's what I found on that topic...")
 
 # --- Misuse Handling ---
-# Simulated check
 if "abuse_count" not in st.session_state:
     st.session_state["abuse_count"] = 0
 
