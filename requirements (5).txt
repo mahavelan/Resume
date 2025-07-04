@@ -1,5 +1,5 @@
 streamlit
-PyPDF2>=3.0.1
+PyPDF2>=2.0.0
 python-docx
 
 
