@@ -113,6 +113,8 @@ elif st.session_state["page"] == "dashboard":
         else:
             st.warning("No company match found. Proceeding to AI training...")
             st.session_state["page"] = "training"
+            st.session_state["return_after_training"] = True  # Set return flag
+            st.experimental_rerun()
 
 # --- Training Page ---
 elif st.session_state["page"] == "training":
