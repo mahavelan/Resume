@@ -24,7 +24,7 @@ def save_users(data):
     with open(USER_FILE, "w") as f:
         json.dump(data, f)
 
-# --- Load Users ---
+# --- Load Users Before Login ---
 users = load_users()
 
 # --- Session State Initialization ---
@@ -42,6 +42,7 @@ OWNER_EMAIL = "owner@example.com"
 OWNER_PASS = "admin1112"
 
 if not st.session_state.get("logged_in"):
+    st.set_page_config(page_title="INTELLIHIRE Login", layout="wide")
     st.title("🔐 Secure Login")
     login_email = st.text_input("Email")
     login_password = st.text_input("Password", type="password")
@@ -71,7 +72,7 @@ if st.session_state.owner_mode:
 with st.sidebar:
     st.image("https://i.imgur.com/AvU0i8I.png", caption="AI HR Avatar", width=200)
     st.markdown("**Upload your own AI interviewer image:**")
-    avatar = st.file_uploader("Tech Recruitment Service Logo INTELLIHIRE.png", type=["png", "jpg", "jpeg"])
+    avatar = st.file_uploader("Upload Avatar", type=["png", "jpg", "jpeg"])
     if avatar:
         st.image(avatar, width=200)
 
