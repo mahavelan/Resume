@@ -2,12 +2,8 @@
 import streamlit as st
 import re
 import os
-
-# --- Attempting Safe Import for PdfReader ---
-try:
-    from PyPDF2 import PdfReader  # PyPDF2 ≥ 2.0.0
-except ImportError:
-    from PyPDF2 import PdfFileReader as PdfReader  # PyPDF2 < 2.0.0
+from PyPDF2 import PdfReader
+  # PyPDF2 < 2.0.0
 
 from docx import Document
 
