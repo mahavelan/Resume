@@ -122,7 +122,7 @@ elif st.session_state["page"] == "dashboard":
     if option == "User Profile":
         st.subheader("Create Profile")
         name = st.text_input("Name")
-        dob = st.date_input("Date of Birth")
+        dob = st.date_input("Date of Birth", min_value=datetime.date(1980, 1, 1))
         gender = st.selectbox("Gender", ["Male", "Female", "Other"])
         email = st.text_input("Email ID", value=st.session_state.get("user_email", ""))
         address = st.text_input("Address")
