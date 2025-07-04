@@ -74,11 +74,11 @@ def auth_ui():
                 save_json(users, USER_FILE)
                 st.success("User registered! Now log in.")
 
-    st.stop()
-
+   
+   
 if not st.session_state.logged_in:
     auth_ui()
-
+    st.stop() 
 # --- Owner Panel ---
 if st.session_state.owner_mode:
     st.sidebar.header("🛠️ Owner Tools")
