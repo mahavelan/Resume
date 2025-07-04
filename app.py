@@ -92,6 +92,14 @@ if st.session_state.owner_mode:
     st.metric("Total Companies", len(companies))
     st.metric("Scheduled Interviews", len(schedules))
 
+    for email, details in users.items():
+        st.subheader(f"User: {email}")
+        st.json(details)
+
+    for cname, cdetails in companies.items():
+        st.subheader(f"Company: {cname}")
+        st.json(cdetails)
+
     if st.sidebar.button("Delete All Users"):
         users.clear()
         save_json(users, USER_FILE)
