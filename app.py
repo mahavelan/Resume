@@ -139,6 +139,7 @@ with st.form("profile_form"):
         st.success("Profile saved!")
 
 # --- Resume Upload ---
+# --- Resume Upload ---
 st.header("📄 Upload Resume")
 uploaded = st.file_uploader("Upload your resume (PDF/DOCX)", type=["pdf", "docx"])
 if uploaded:
@@ -151,19 +152,54 @@ if uploaded:
     for cname, cdata in companies.items():
         if any(skill.strip().lower() in resume_text.lower() for skill in cdata["skills"]):
             matched.append(cname)
+            if st.session_state.user_email not in schedules:
+                schedules[st.session_state.user_email] = {}
+            schedules[st.session_state.user_email][cname] = {
+                "status": "selected",
+                "date": "2025-07-10",
+                "time": "10:00 AM",
+                "mode": "Online"
+            }
+        else:
+            if st.session_state.user_email not in schedules:
+                schedules[st.session_state.user_email] = {}
+            feedback_prompt = f"Analyze this resume and provide reason why it may be rejected: {resume_text}"
+            feedback = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "system", "content": "You are an HR expert."},
+                          {"role": "user", "content": feedback_prompt}]
+            )
+            schedules[st.session_state.user_email][cname] = {
+                "status": "rejected",
+                "feedback": feedback.choices[0].message.content
+            }
+    save_json(schedules, INTERVIEW_SCHEDULE_FILE)
 
     if matched:
         st.success("🎯 Resume matches with the following companies:")
         for c in matched:
             st.write(f"✅ {c}")
-            scheduled = schedules.get(st.session_state.user_email, {}).get(c, {})
-            if scheduled.get("status") == "selected":
-                st.info(f"🗓️ Interview Scheduled: {scheduled.get('date')} at {scheduled.get('time')} ({scheduled.get('mode')})")
-            elif scheduled.get("status") == "rejected":
-                st.warning("❌ Resume rejected. Feedback:")
-                st.text(scheduled.get("feedback", "Not provided"))
     else:
-        st.warning("No companies found matching your resume skills.")
+        st.warning("No matching companies found.")
+
+# --- Interview Dashboard ---
+st.header("📅 Interview Dashboard")
+if st.session_state.user_email in schedules:
+    for comp, data in schedules[st.session_state.user_email].items():
+        st.write(f"**{comp}**")
+        if data["status"] == "selected":
+            st.success(f"Interview on {data['date']} at {data['time']} ({data['mode']})")
+        else:
+            st.error("Resume rejected")
+            st.write("Feedback:", data.get("feedback", "Not provided"))
+            if st.button(f"Suggest Resume Fix for {comp}"):
+                fix_prompt = f"Rewrite and improve this resume to match {comp} requirements: {resume_text}"
+                fix = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[{"role": "user", "content": fix_prompt}]
+                )
+                st.write("Suggested Resume:")
+                st.code(fix.choices[0].message.content)
 
 # --- Company Registration ---
 st.header("🏢 Company Registration")
