@@ -54,17 +54,41 @@ if "page" not in st.session_state:
 
 # --- Home Page ---
 if st.session_state["page"] == "home":
-    st.image("Tech Recruitment Service Logo INTELLIHIRE.png", width=200)
+    st.image("logo.png", width=200)
     st.title("Welcome to INTELLIHIRE")
 
-    st.subheader("🔐 Email Login")
-    username = st.text_input("Username")
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    
-    if st.button("Login"):
-        # Optional: validate credentials here
-        st.session_state["page"] = "dashboard"
+    auth_choice = st.radio("Select Option:", ["Login", "Sign Up"])
+
+    if auth_choice == "Login":
+        st.subheader("🔐 Login with Email")
+        login_email = st.text_input("Email", key="login_email")
+        login_password = st.text_input("Password", type="password", key="login_pass")
+
+        if st.button("Login"):
+            if login_email in users and users[login_email]["password"] == login_password:
+                st.success("Login successful!")
+                st.session_state["logged_in"] = True
+                st.session_state["page"] = "dashboard"
+            else:
+                st.error("Invalid email or password.")
+
+    elif auth_choice == "Sign Up":
+        st.subheader("📝 Create New Account")
+        new_username = st.text_input("Username", key="signup_username")
+        new_email = st.text_input("Email", key="signup_email")
+        new_password = st.text_input("Password", type="password", key="signup_pass")
+
+        if st.button("Sign Up"):
+            if new_email in users:
+                st.warning("Email already exists. Please log in.")
+            else:
+                users[new_email] = {"username": new_username, "password": new_password}
+                st.success("Sign-up successful! Please log in now.")
+
+# Auto-login if already authenticated
+if st.session_state.get("logged_in") and st.session_state["page"] == "home":
+    st.session_state["page"] = "dashboard"
+    st.experimental_rerun()
 
 
 # --- Dashboard ---
