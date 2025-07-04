@@ -54,7 +54,7 @@ if "page" not in st.session_state:
 
 # --- Home Page ---
 if st.session_state["page"] == "home":
-    st.image("logo.png", width=200)
+    st.image("Tech Recruitment Service Logo INTELLIHIRE.png", width=200)
     st.title("Welcome to INTELLIHIRE")
 
     auth_choice = st.radio("Select Option:", ["Login", "Sign Up"])
