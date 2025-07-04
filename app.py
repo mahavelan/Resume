@@ -3,11 +3,29 @@ import streamlit as st
 import openai
 from streamlit_chat import message
 import os
+import json
 from dotenv import load_dotenv
 
 # --- Load API Key (for local dev only) ---
 load_dotenv()
 openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+
+# --- Constants ---
+USER_FILE = "users.json"
+
+# --- Persistent User Data Functions ---
+def load_users():
+    if os.path.exists(USER_FILE):
+        with open(USER_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_users(data):
+    with open(USER_FILE, "w") as f:
+        json.dump(data, f)
+
+# --- Load Users ---
+users = load_users()
 
 # --- Session State Initialization ---
 if "chat_history" not in st.session_state:
@@ -21,12 +39,13 @@ if "owner_mode" not in st.session_state:
 
 # --- Owner Login ---
 OWNER_EMAIL = "owner@example.com"
-OWNER_PASS = "admin123"
+OWNER_PASS = "admin1112"
 
 if not st.session_state.get("logged_in"):
     st.title("🔐 Secure Login")
     login_email = st.text_input("Email")
     login_password = st.text_input("Password", type="password")
+
     if st.button("Login"):
         if login_email == OWNER_EMAIL and login_password == OWNER_PASS:
             st.session_state.logged_in = True
@@ -44,15 +63,15 @@ if not st.session_state.get("logged_in"):
 if st.session_state.owner_mode:
     st.sidebar.header("🛠️ Owner Tools")
     if st.sidebar.button("Delete All User Accounts"):
-        with open("users.json", "w") as f:
-            f.write("{}")
-        st.sidebar.success("All user accounts deleted")
+        users = {}
+        save_users(users)
+        st.sidebar.success("✅ All user accounts deleted!")
 
 # --- Sidebar: Avatar Upload ---
 with st.sidebar:
     st.image("https://i.imgur.com/AvU0i8I.png", caption="AI HR Avatar", width=200)
     st.markdown("**Upload your own AI interviewer image:**")
-    avatar = st.file_uploader("Upload image", type=["png", "jpg", "jpeg"])
+    avatar = st.file_uploader("Tech Recruitment Service Logo INTELLIHIRE.png", type=["png", "jpg", "jpeg"])
     if avatar:
         st.image(avatar, width=200)
 
