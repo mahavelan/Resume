@@ -5,7 +5,6 @@ from streamlit_chat import message
 import os
 import json
 from dotenv import load_dotenv
-
 # --- Load API Key (for local dev only) ---
 load_dotenv()
 openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
