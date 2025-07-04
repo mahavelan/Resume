@@ -158,16 +158,14 @@ elif st.session_state["page"] == "dashboard":
             st.success(f"Resume matched with: {', '.join(matched_companies)}")
             st.info("Your resume has been sent to the matched companies. Await interview call.")
         else:
-            st.warning("No company match found. Proceeding to AI training...")
-            st.session_state["page"] = "training"
-            st.experimental_rerun()
+            st.warning("No company match found.")
 
-# --- AI Training Page ---
-elif st.session_state["page"] == "training":
-    st.header("AI-Based Training")
+    # --- Always Show AI Training ---
+    st.markdown("---")
+    st.subheader("🤖 AI-Based Training")
     st.image("https://i.imgur.com/AvU0i8I.png", width=100)
     st.write("AI HR: Tell me about yourself.")
-    if st.button("\U0001F399️ Click to Answer"):
+    if st.button("🎙️ Click to Answer"):
         st.info("Recording... (simulated)")
         st.info("Timeout reached. Showing ideal answer:")
         st.success("Ideal Answer: I'm a recent graduate with experience in Python and ML...")
@@ -176,23 +174,16 @@ elif st.session_state["page"] == "training":
     if score < 6:
         st.warning("You scored below 6. Please retake the mock interview.")
 
-    st.markdown("---")
     st.subheader("Practice More Interviews")
     if st.button("Start Practice Interview"):
         st.success("Practice session started...")
 
+    # --- LAKS Chatbot ---
     st.markdown("---")
-    st.subheader("\U0001F4DA Ask LAKS (Study Support Only)")
+    st.subheader("📚 Ask LAKS (Study Support Only)")
     user_input = st.text_input("Ask a question:")
     if user_input:
         if any(word in user_input.lower() for word in ["joke", "date", "abuse", "fight"]):
             st.error("LAKS only answers educational queries. Please be respectful.")
         else:
             st.success("AI Answer: Here's what I found on that topic...")
-
-# --- Misuse Handling ---
-if "abuse_count" not in st.session_state:
-    st.session_state["abuse_count"] = 0
-if st.session_state["abuse_count"] >= 3:
-    st.error("You have been blocked for misuse. Please try again in 7 days.")
-    st.stop()
