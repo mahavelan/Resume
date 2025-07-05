@@ -249,7 +249,7 @@ if st.session_state.user_type == "user":
 
             prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
 
-            response = openai.ChatCompletions.create(
+            response = client.ChatCompletions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": level_tag},
@@ -263,7 +263,7 @@ if st.session_state.user_type == "user":
 
             if st.button("Submit Answer"):
                 feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
-                feedback = openai.chat.completions.create(
+                feedback =client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "Give detailed feedback"},
@@ -283,7 +283,7 @@ if st.session_state.user_type == "user":
             if submit and query:
                 st.session_state.chat_history = st.session_state.chat_history or []
                 st.session_state.chat_history.append({"role": "user", "content": query})
-                reply = openai.chat.completions.create(
+                reply = client.chat.completions.create(
                     model="gpt-4",
                     messages=st.session_state.chat_history
                 )
@@ -299,7 +299,7 @@ if st.session_state.user_type == "user":
         if send and user_input:
             st.session_state.chat_history = st.session_state.chat_history or []
             st.session_state.chat_history.append({"role": "user", "content": user_input})
-            reply = openai.chat.completions.create(
+            reply = client.chat.completions.create(
                 model="gpt-4",
                 messages=st.session_state.chat_history
             )
