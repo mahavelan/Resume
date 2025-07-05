@@ -196,8 +196,7 @@ if st.session_state.user_type == "company":
                     st.write("Feedback:", applications[st.session_state.user_email].get("feedback", "-"))
         if not found:
             st.warning("No applications yet.")
-
-# --- User Panel ---
+#----------user panel---------#
 if st.session_state.user_type == "user":
 
     choice = st.selectbox("Choose a feature", [
@@ -227,7 +226,7 @@ if st.session_state.user_type == "user":
 
     elif choice == "Upload Resume":
         st.header("📄 Upload Resume")
-        uploaded = st.file_uploader("Upload your resume (PDF/DOCX)", type=["pdf", "docx"])
+        uploaded = st.file_uploader("Upload your resume (PDF/DOCX)", type=["pdf", "docx"], key="resume_upload")
         if uploaded:
             resume_text = uploaded.read().decode("utf-8", errors="ignore")
             users[st.session_state.user_email]["resume"] = resume_text
@@ -268,7 +267,7 @@ if st.session_state.user_type == "user":
             question = response.choices[0].message.content
             st.subheader("💬 AI HR Interviewer:")
             st.info(question)
-            answer = st.text_area("🎙️ Your Answer")
+            answer = st.text_area("🎧 Your Answer")
 
             if st.button("Submit Answer"):
                 feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
@@ -285,9 +284,8 @@ if st.session_state.user_type == "user":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
 
-        # --- Voice Input ---
         st.subheader("🎤 Speak to AI Trainer")
-        audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
+        audio_data = mic_recorder(start_prompt="🎤 Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
         if audio_data:
             raw_bytes = io.BytesIO(audio_data["bytes"])
@@ -324,7 +322,6 @@ if st.session_state.user_type == "user":
             except Exception as e:
                 st.error(f"Audio conversion failed: {e}")
 
-        # --- Text Chat Option ---
         with st.expander("📨 IntelliHire Private Chat"):
             with st.form("ai_training_chat", clear_on_submit=True):
                 query = st.text_input("Ask AI Trainer something...")
@@ -388,7 +385,3 @@ if st.session_state.user_type == "user":
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
-
-
-
-
