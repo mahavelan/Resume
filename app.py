@@ -12,8 +12,7 @@ from streamlit_chat import message
 load_dotenv()
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-load_dotenv()
-client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY"))
+
 
 # --- Constants ---
 USER_FILE = "users.json"
