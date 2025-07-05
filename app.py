@@ -201,7 +201,7 @@ if st.session_state.user_type == "user":
 
     choice = st.selectbox("Choose a feature", [
         "Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS", "ATS Resume Fix"
-    ])
+    ], key="user_panel_choice")
 
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
@@ -234,7 +234,7 @@ if st.session_state.user_type == "user":
             st.success("Resume uploaded and stored.")
 
     elif choice == "Interview Dashboard":
-        st.header("🧠 AI Mock Interview")
+        st.header("🧐 AI Mock Interview")
         level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All"])
         st.session_state.selected_level = level
         matching_companies = []
@@ -257,7 +257,7 @@ if st.session_state.user_type == "user":
 
             prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
 
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": level_tag},
@@ -271,7 +271,7 @@ if st.session_state.user_type == "user":
 
             if st.button("Submit Answer"):
                 feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
-                feedback = openai.ChatCompletion.create(
+                feedback = openai.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "Give detailed feedback"},
@@ -301,12 +301,12 @@ if st.session_state.user_type == "user":
 
                 try:
                     text_query = recognizer.recognize_google(audio)
-                    st.success(f"🗣️ You said: {text_query}")
+                    st.success(f"🚣️ You said: {text_query}")
 
-                    st.session_state.chat_history = st.session_state.chat_history or []
+                    st.session_state.chat_history = st.session_state.get("chat_history", [])
                     st.session_state.chat_history.append({"role": "user", "content": text_query})
 
-                    reply = openai.ChatCompletion.create(
+                    reply = openai.chat.completions.create(
                         model="gpt-4",
                         messages=st.session_state.chat_history
                     )
@@ -327,9 +327,9 @@ if st.session_state.user_type == "user":
                 query = st.text_input("Ask AI Trainer something...")
                 submit = st.form_submit_button("Send")
             if submit and query:
-                st.session_state.chat_history = st.session_state.chat_history or []
+                st.session_state.chat_history = st.session_state.get("chat_history", [])
                 st.session_state.chat_history.append({"role": "user", "content": query})
-                reply = openai.ChatCompletion.create(
+                reply = openai.chat.completions.create(
                     model="gpt-4",
                     messages=st.session_state.chat_history
                 )
@@ -343,9 +343,9 @@ if st.session_state.user_type == "user":
             user_input = st.text_input("Ask about careers, coding, jobs...")
             send = st.form_submit_button("Ask LAKS")
         if send and user_input:
-            st.session_state.chat_history = st.session_state.chat_history or []
+            st.session_state.chat_history = st.session_state.get("chat_history", [])
             st.session_state.chat_history.append({"role": "user", "content": user_input})
-            reply = openai.ChatCompletion.create(
+            reply = openai.chat.completions.create(
                 model="gpt-4",
                 messages=st.session_state.chat_history
             )
@@ -371,7 +371,7 @@ if st.session_state.user_type == "user":
                 with st.expander(f"📝 View ATS Resume Fix Suggestion for {company}"):
                     prompt = f"Candidate resume: {resume}\nCompany feedback: {feedback}\nUpdate the resume content to address the feedback and improve alignment."
                     try:
-                        response = openai.ChatCompletion.create(
+                        response = openai.chat.completions.create(
                             model="gpt-4",
                             messages=[
                                 {"role": "system", "content": "You are an expert resume editor."},
@@ -385,3 +385,4 @@ if st.session_state.user_type == "user":
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
+
