@@ -198,15 +198,11 @@ if st.session_state.user_type == "company":
             st.warning("No applications yet.")
 
 # --- User Panel ---
-import io
-import wave
-import tempfile
-import speech_recognition as sr
-from streamlit_chat import message
-from pydub import AudioSegment
-from streamlit_mic_recorder import mic_recorder
-
 if st.session_state.user_type == "user":
+
+    choice = st.selectbox("Choose a feature", [
+        "Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS", "ATS Resume Fix"
+    ], key="main_user_choice")
 
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
@@ -360,27 +356,39 @@ if st.session_state.user_type == "user":
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             message(response, is_user=False)
 
+    elif choice == "ATS Resume Fix":
+        st.header("🛠️ Resume Fix Based on Company Feedback")
+        email = st.session_state.user_email
+        resume = users[email].get("resume", "")
+        feedbacks = []
+        for company, result in schedules.get(email, {}).items():
+            if result.get("status") == "rejected" and result.get("feedback"):
+                feedbacks.append((company, result["feedback"]))
+
+        if not feedbacks:
+            st.info("No rejected resumes with feedback found.")
+        else:
+            for company, feedback in feedbacks:
+                st.subheader(f"Feedback from {company}:")
+                st.warning(feedback)
+                with st.expander(f"📝 View ATS Resume Fix Suggestion for {company}"):
+                    prompt = f"Candidate resume: {resume}\nCompany feedback: {feedback}\nUpdate the resume content to address the feedback and improve alignment."
+                    try:
+                        response = openai.ChatCompletion.create(
+                            model="gpt-4",
+                            messages=[
+                                {"role": "system", "content": "You are an expert resume editor."},
+                                {"role": "user", "content": prompt}
+                            ]
+                        )
+                        improved_resume = response.choices[0].message.content
+                        st.text_area("🔧 Modified Resume Suggestion", value=improved_resume, height=300)
+                    except Exception as e:
+                        st.error(f"OpenAI error: {e}")
+
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
 
-if st.session_state.user_type == "user" and choice == "ATS Resume Fix":
-    st.header("🛠️ Improve Resume with ATS Feedback")
-    resume = users[st.session_state.user_email].get("resume", "")
-    feedback = users[st.session_state.user_email].get("ats_feedback", "")
-
-    if resume and feedback:
-        prompt = f"Improve the following resume based on the company's feedback: '{feedback}'. Resume: {resume}"
-        reply = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an expert resume rewriting assistant."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        improved = reply.choices[0].message.content
-        st.text_area("📄 Updated Resume", improved, height=300)
-    else:
-        st.info("Upload resume and receive feedback from company to use ATS.")
 
 
 
