@@ -288,8 +288,8 @@ if st.session_state.user_type == "user":
                        ]
                    )
                    st.success(feedback.choices[0].message.content)
-       else:
-            st.error("❌ No valid company selected or company not found.")
+             else:
+                st.error("❌ No valid company selected or company not found.")
 
 
     elif choice == "AI Training":
