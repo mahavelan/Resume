@@ -50,9 +50,9 @@ def auth_ui():
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
     with tab1:
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        user_type = st.selectbox("Login as", ["User", "Company", "Owner"])
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+        user_type = st.selectbox("Login as", ["User", "Company", "Owner"], key="login_type")
 
         if st.button("Login"):
             if user_type == "Owner" and email == OWNER_EMAIL and password == OWNER_PASS:
@@ -81,9 +81,9 @@ def auth_ui():
                 st.error("Invalid credentials")
 
     with tab2:
-        new_email = st.text_input("Email (New Account)")
-        new_password = st.text_input("Password (New Account)", type="password")
-        new_type = st.selectbox("Register as", ["User", "Company"])
+        new_email = st.text_input("Email (New Account)", key="reg_email")
+        new_password = st.text_input("Password (New Account)", type="password", key="reg_password")
+        new_type = st.selectbox("Register as", ["User", "Company"], key="reg_type")
         if st.button("Register"):
             if new_type == "User":
                 if new_email in users:
@@ -103,6 +103,15 @@ def auth_ui():
 if not st.session_state.logged_in:
     auth_ui()
     st.stop()
+
+# --- Main Dashboard Routing ---
+st.title("🤖 IntelliHire Dashboard")
+if st.session_state.user_type == "user":
+    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"], key="user_choice")
+elif st.session_state.user_type == "company":
+    choice = st.selectbox("Company Panel", ["Register Details", "View Applications"], key="company_choice")
+else:
+    choice = "Home"
 
 # --- Selection UI for Features ---
 st.title("🤖 IntelliHire Dashboard")
