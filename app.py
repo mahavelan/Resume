@@ -386,3 +386,4 @@ if st.session_state.user_type == "user":
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
 
+
