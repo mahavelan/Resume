@@ -234,7 +234,7 @@ if st.session_state.user_type == "user":
             st.success("Resume uploaded and stored.")
 
     elif choice == "Interview Dashboard":
-        st.header("🧐 AI Mock Interview")
+        st.header("🧠 AI Mock Interview")
         level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All"])
         st.session_state.selected_level = level
         matching_companies = []
@@ -284,8 +284,8 @@ if st.session_state.user_type == "user":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
 
-        st.subheader("🎤 Speak to AI Trainer")
-        audio_data = mic_recorder(start_prompt="🎤 Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
+        st.subheader("🎙️ Speak to AI Trainer")
+        audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
         if audio_data:
             raw_bytes = io.BytesIO(audio_data["bytes"])
@@ -385,5 +385,6 @@ if st.session_state.user_type == "user":
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
+
 
 
