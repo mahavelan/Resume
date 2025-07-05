@@ -5,4 +5,7 @@ python-dotenv==1.0.1
 streamlit-chat==0.0.2.2
 streamlit-mic-recorder
 SpeechRecognition
+pydub==0.25.1
+ffmpeg==1.4
+
 
