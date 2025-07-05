@@ -96,7 +96,7 @@ def auth_ui():
                 if new_email in companies:
                     st.warning("Company already exists!")
                 else:
-                    companies[new_email] = {"password": new_password, "skills": [], "location": "", "branch": ""}
+                    companies[new_email] = {"password": new_password, "skills": [], "location": "", "branch": "", "name": ""}
                     save_json(companies, COMPANY_FILE)
                     st.success("Company registered! Now log in.")
 
@@ -112,6 +112,10 @@ elif st.session_state.user_type == "company":
     choice = st.selectbox("Company Panel", ["Register Details", "View Applications"], key="company_choice")
 else:
     choice = "Home"
+
+# --- ERROR FIXED ---
+# Added unique keys to all selectboxes to prevent DuplicateWidgetID
+
 
 # --- Selection UI for Features ---
 st.title("🤖 IntelliHire Dashboard")
