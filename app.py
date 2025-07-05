@@ -339,7 +339,7 @@ if st.session_state.user_type == "user":
 
     elif choice == "Ask LAKS":
         st.header("📚 Ask LAKS Anything")
-        with st.form("laks_chat", clear_on_submit=True):
+        with st.form("laks_chat", clear_on_submit=False):
             user_input = st.text_input("Ask about careers, coding, jobs...")
             send = st.form_submit_button("Ask LAKS")
         if send and user_input:
