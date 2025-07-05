@@ -8,10 +8,8 @@ from dotenv import load_dotenv
 
 # --- Load API Key ---
 load_dotenv()
-
-
+openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 # --- Load API key securely ---
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # --- Constants ---
 USER_FILE = "users.json"
