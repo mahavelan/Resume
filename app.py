@@ -5,6 +5,9 @@ from streamlit_chat import message
 import os
 import json
 from dotenv import load_dotenv
+from streamlit_mic_recorder import mic_recorder
+import speech_recognition as sr
+import tempfile
 
 # --- Load API Key ---
 load_dotenv()
@@ -276,11 +279,6 @@ if st.session_state.user_type == "user":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
         st.write("(In future: integrate live audio recognition & feedback.)")
-
-        from streamlit_mic_recorder import mic_recorder
-        import speech_recognition as sr
-        import tempfile
-
         # --- Voice Input ---
         st.subheader("🎤 Speak to AI Trainer")
         audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
