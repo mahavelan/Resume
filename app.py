@@ -199,9 +199,7 @@ if st.session_state.user_type == "company":
 #----------user panel---------#
 if st.session_state.user_type == "user":
 
-    choice = st.selectbox("Choose a feature", [
-        "Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS", "ATS Resume Fix"
-    ], key="user_panel_choice")
+    choice = st.selectbox("Choose a feature", [..], key="user_panel_choice")
 
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
