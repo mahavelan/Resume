@@ -60,7 +60,7 @@ def auth_ui():
                 st.session_state.owner_mode = True
                 st.session_state.user_type = "owner"
                 st.success("✅ Logged in as Owner")
-                st.experimental_rerun()
+                st.rerun()
             elif user_type == "User" and email in users and users[email]["password"] == password:
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = False
@@ -68,7 +68,7 @@ def auth_ui():
                 st.session_state.user_profile = users[email].get("profile", {})
                 st.session_state.user_type = "user"
                 st.success("✅ Logged in as User")
-                st.experimental_rerun()
+                st.rerun()
             elif user_type == "Company" and email in companies and companies[email]["password"] == password:
                 st.session_state.logged_in = True
                 st.session_state.owner_mode = False
@@ -76,7 +76,7 @@ def auth_ui():
                 st.session_state.user_profile = companies[email]
                 st.session_state.user_type = "company"
                 st.success("✅ Logged in as Company")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Invalid credentials")
 
@@ -190,27 +190,105 @@ if st.session_state.user_type == "company":
             st.warning("No applications yet.")
 
 # --- User Features ---
+# --- User Features ---
 if st.session_state.user_type == "user":
-    # Previous logic kept here for user functions (unchanged)...
-    pass  # Actual logic already provided earlier in user's version
+    if choice == "Create Profile":
+        st.header("👤 Create Your Profile")
+        with st.form("profile_form"):
+            name = st.text_input("Name")
+            age = st.number_input("Age", min_value=18, max_value=60)
+            phone = st.text_input("Phone")
+            state = st.text_input("State")
+            city = st.text_input("City")
+            domain = st.text_input("Domain (e.g., AI, Data Science)")
+            edu = st.selectbox("Education", ["UG", "PG", "Diploma", "Other"])
+            submitted = st.form_submit_button("Save Profile")
+            if submitted:
+                profile = {"name": name, "age": age, "phone": phone, "state": state, "city": city,
+                           "domain": domain, "education": edu}
+                users[st.session_state.user_email]["profile"] = profile
+                st.session_state.user_profile = profile
+                save_json(users, USER_FILE)
+                st.success("Profile saved!")
 
-# --- ChatBot ---
-if st.session_state.user_type == "user" and choice == "Ask LAKS":
-    st.header("📚 Ask LAKS Anything")
-    with st.form("laks_chat", clear_on_submit=True):
-        user_input = st.text_input("Ask about careers, coding, jobs...")
-        send = st.form_submit_button("Ask LAKS")
-    if send and user_input:
-        st.session_state.chat_history = st.session_state.chat_history or []
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-        reply = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=st.session_state.chat_history
-        )
-        response = reply.choices[0].message.content
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
-        message(response, is_user=False)
+    elif choice == "Upload Resume":
+        st.header("📄 Upload Resume")
+        uploaded = st.file_uploader("Upload your resume (PDF/DOCX)", type=["pdf", "docx"])
+        if uploaded:
+            resume_text = uploaded.read().decode("utf-8", errors="ignore")
+            users[st.session_state.user_email]["resume"] = resume_text
+            save_json(users, USER_FILE)
+            st.success("Resume uploaded and stored.")
+
+    elif choice == "Interview Dashboard":
+        st.header("🧠 AI Mock Interview")
+        level = st.selectbox("Select Interview Level", ["Easy", "Moderate", "Hard", "All"])
+        st.session_state.selected_level = level
+        matching_companies = []
+        resume_text = users[st.session_state.user_email].get("resume", "")
+
+        for cname, cdata in companies.items():
+            if resume_text and any(skill.strip().lower() in resume_text.lower() for skill in cdata["skills"]):
+                matching_companies.append(cname)
+
+        if matching_companies:
+            st.session_state.selected_company = st.selectbox("Select matching company", matching_companies)
+        else:
+            st.warning("No matching company found. You can still practice with any registered company.")
+            st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
+
+        if st.button("Start AI Interview"):
+            company_req = companies[st.session_state.selected_company]["skills"]
+            user_resume = users[st.session_state.user_email]["resume"]
+            level_tag = f"Interview Difficulty: {level}"
+
+            prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
+
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": level_tag},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            question = response.choices[0].message.content
+            st.subheader("💬 AI HR Interviewer:")
+            st.info(question)
+            answer = st.text_area("🎙️ Your Answer")
+
+            if st.button("Submit Answer"):
+                feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
+                feedback = openai.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "Give detailed feedback"},
+                        {"role": "user", "content": feedback_prompt}
+                    ]
+                )
+                st.success(feedback.choices[0].message.content)
+
+    elif choice == "AI Training":
+        st.header("🎓 AI Training Session (Audio Only)")
+        st.write("This feature will simulate a voice-only interview. Future updates may include real audio processing.")
+
+    elif choice == "Ask LAKS":
+        st.header("📚 Ask LAKS Anything")
+        with st.form("laks_chat", clear_on_submit=True):
+            user_input = st.text_input("Ask about careers, coding, jobs...")
+            send = st.form_submit_button("Ask LAKS")
+        if send and user_input:
+            st.session_state.chat_history = st.session_state.chat_history or []
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            reply = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=st.session_state.chat_history
+            )
+            response = reply.choices[0].message.content
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
+            message(response, is_user=False)
 
 # --- History Management ---
 if st.button("Clear Chat History"):
     st.session_state.chat_history = []
+
+
