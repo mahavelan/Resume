@@ -203,8 +203,9 @@ import wave
 import tempfile
 import speech_recognition as sr
 from streamlit_chat import message
+from pydub import AudioSegment
+from streamlit_mic_recorder import mic_recorder
 
-# --- User Panel ---
 if st.session_state.user_type == "user":
 
     if choice == "Create Profile":
@@ -219,8 +220,10 @@ if st.session_state.user_type == "user":
             edu = st.selectbox("Education", ["UG", "PG", "Diploma", "Other"])
             submitted = st.form_submit_button("Save Profile")
             if submitted:
-                profile = {"name": name, "age": age, "phone": phone, "state": state, "city": city,
-                           "domain": domain, "education": edu}
+                profile = {
+                    "name": name, "age": age, "phone": phone,
+                    "state": state, "city": city, "domain": domain, "education": edu
+                }
                 users[st.session_state.user_email]["profile"] = profile
                 st.session_state.user_profile = profile
                 save_json(users, USER_FILE)
@@ -285,29 +288,25 @@ if st.session_state.user_type == "user":
     elif choice == "AI Training":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
-        st.write("(In future: integrate live audio recognition & feedback.)")
 
         # --- Voice Input ---
         st.subheader("🎤 Speak to AI Trainer")
         audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
         if audio_data:
-            audio_bytes = audio_data["bytes"]
-            audio_buffer = io.BytesIO(audio_bytes)
-
-            # Validate WAV audio
+            raw_bytes = io.BytesIO(audio_data["bytes"])
             try:
-                with wave.open(audio_buffer, 'rb') as wf:
-                    pass  # Valid WAV file
-            except wave.Error:
-                st.error("The recorded audio is not a valid WAV PCM file. Please try again.")
-            else:
-                audio_buffer.seek(0)
-                r = sr.Recognizer()
-                with sr.AudioFile(audio_buffer) as source:
-                    audio = r.record(source)
+                audio_segment = AudioSegment.from_file(raw_bytes)
+                wav_io = io.BytesIO()
+                audio_segment.export(wav_io, format="wav")
+                wav_io.seek(0)
+
+                recognizer = sr.Recognizer()
+                with sr.AudioFile(wav_io) as source:
+                    audio = recognizer.record(source)
+
                 try:
-                    text_query = r.recognize_google(audio)
+                    text_query = recognizer.recognize_google(audio)
                     st.success(f"🗣️ You said: {text_query}")
 
                     st.session_state.chat_history = st.session_state.chat_history or []
@@ -325,6 +324,9 @@ if st.session_state.user_type == "user":
                     st.warning("Sorry, could not understand your speech.")
                 except sr.RequestError as e:
                     st.error(f"Speech recognition failed: {e}")
+
+            except Exception as e:
+                st.error(f"Audio conversion failed: {e}")
 
         # --- Text Chat Option ---
         with st.expander("📨 IntelliHire Private Chat"):
@@ -360,4 +362,5 @@ if st.session_state.user_type == "user":
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
+
 
