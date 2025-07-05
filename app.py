@@ -363,4 +363,24 @@ if st.session_state.user_type == "user":
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
 
+if st.session_state.user_type == "user" and choice == "ATS Resume Fix":
+    st.header("🛠️ Improve Resume with ATS Feedback")
+    resume = users[st.session_state.user_email].get("resume", "")
+    feedback = users[st.session_state.user_email].get("ats_feedback", "")
+
+    if resume and feedback:
+        prompt = f"Improve the following resume based on the company's feedback: '{feedback}'. Resume: {resume}"
+        reply = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert resume rewriting assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        improved = reply.choices[0].message.content
+        st.text_area("📄 Updated Resume", improved, height=300)
+    else:
+        st.info("Upload resume and receive feedback from company to use ATS.")
+
+
 
