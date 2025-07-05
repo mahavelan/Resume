@@ -339,12 +339,15 @@ if st.session_state.user_type == "user":
 
     elif choice == "Ask LAKS":
         st.header("📚 Ask LAKS Anything")
-        with st.form("laks_chat", clear_on_submit=False):
+        with st.form("laks_chat", clear_on_submit=True):
             user_input = st.text_input("Ask about careers, coding, jobs...")
             send = st.form_submit_button("Ask LAKS")
         if send and user_input:
-            st.session_state.chat_history = st.session_state.get("chat_history", [])
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            # ✅ Initialize chat_history once
+            if "chat_history" not in st.session_state:
+                st.session_state.chat_history = []
+ # ✅ Now safe to append
+                st.session_state.chat_history.append({"role": "user", "content": user_input})
             reply = openai.chat.completions.create(
                 model="gpt-4",
                 messages=st.session_state.chat_history
