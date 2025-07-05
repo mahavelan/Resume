@@ -198,6 +198,13 @@ if st.session_state.user_type == "company":
             st.warning("No applications yet.")
 
 # --- User Panel ---
+import io
+import wave
+import tempfile
+import speech_recognition as sr
+from streamlit_chat import message
+
+# --- User Panel ---
 if st.session_state.user_type == "user":
 
     if choice == "Create Profile":
@@ -279,18 +286,26 @@ if st.session_state.user_type == "user":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
         st.write("(In future: integrate live audio recognition & feedback.)")
+
         # --- Voice Input ---
         st.subheader("🎤 Speak to AI Trainer")
         audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
         if audio_data:
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                f.write(audio_data["bytes"])
-                audio_path = f.name
+            audio_bytes = audio_data["bytes"]
+            audio_buffer = io.BytesIO(audio_bytes)
 
-            r = sr.Recognizer()
-            with sr.AudioFile(audio_path) as source:
-                audio = r.record(source)
+            # Validate WAV audio
+            try:
+                with wave.open(audio_buffer, 'rb') as wf:
+                    pass  # Valid WAV file
+            except wave.Error:
+                st.error("The recorded audio is not a valid WAV PCM file. Please try again.")
+            else:
+                audio_buffer.seek(0)
+                r = sr.Recognizer()
+                with sr.AudioFile(audio_buffer) as source:
+                    audio = r.record(source)
                 try:
                     text_query = r.recognize_google(audio)
                     st.success(f"🗣️ You said: {text_query}")
@@ -345,3 +360,4 @@ if st.session_state.user_type == "user":
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
+
