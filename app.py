@@ -249,7 +249,7 @@ if st.session_state.user_type == "user":
 
             prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
 
-            response = client.ChatCompletions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": level_tag},
@@ -263,7 +263,7 @@ if st.session_state.user_type == "user":
 
             if st.button("Submit Answer"):
                 feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
-                feedback =client.chat.completions.create(
+                feedback = openai.ChatCompletion.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "Give detailed feedback"},
@@ -272,34 +272,55 @@ if st.session_state.user_type == "user":
                 )
                 st.success(feedback.choices[0].message.content)
 
-   elif choice == "AI Training":
-    st.header("🎓 AI Training Session (Simulated Video Call)")
-    st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
-    st.write("(In future: integrate live audio recognition & feedback.)")
+    elif choice == "AI Training":
+        st.header("🎓 AI Training Session (Simulated Video Call)")
+        st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
+        st.write("(In future: integrate live audio recognition & feedback.)")
 
-    from streamlit_mic_recorder import mic_recorder
-    import speech_recognition as sr
-    import tempfile
+        from streamlit_mic_recorder import mic_recorder
+        import speech_recognition as sr
+        import tempfile
 
-    # --- Voice Input ---
-    st.subheader("🎤 Speak to AI Trainer")
-    audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
+        # --- Voice Input ---
+        st.subheader("🎤 Speak to AI Trainer")
+        audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
-    if audio_data:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            f.write(audio_data["bytes"])
-            audio_path = f.name
+        if audio_data:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                f.write(audio_data["bytes"])
+                audio_path = f.name
 
-        r = sr.Recognizer()
-        with sr.AudioFile(audio_path) as source:
-            audio = r.record(source)
-            try:
-                text_query = r.recognize_google(audio)
-                st.success(f"🗣️ You said: {text_query}")
+            r = sr.Recognizer()
+            with sr.AudioFile(audio_path) as source:
+                audio = r.record(source)
+                try:
+                    text_query = r.recognize_google(audio)
+                    st.success(f"🗣️ You said: {text_query}")
 
+                    st.session_state.chat_history = st.session_state.chat_history or []
+                    st.session_state.chat_history.append({"role": "user", "content": text_query})
+
+                    reply = openai.ChatCompletion.create(
+                        model="gpt-4",
+                        messages=st.session_state.chat_history
+                    )
+                    response = reply.choices[0].message.content
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+                    message(response, is_user=False)
+
+                except sr.UnknownValueError:
+                    st.warning("Sorry, could not understand your speech.")
+                except sr.RequestError as e:
+                    st.error(f"Speech recognition failed: {e}")
+
+        # --- Text Chat Option ---
+        with st.expander("📨 IntelliHire Private Chat"):
+            with st.form("ai_training_chat", clear_on_submit=True):
+                query = st.text_input("Ask AI Trainer something...")
+                submit = st.form_submit_button("Send")
+            if submit and query:
                 st.session_state.chat_history = st.session_state.chat_history or []
-                st.session_state.chat_history.append({"role": "user", "content": text_query})
-
+                st.session_state.chat_history.append({"role": "user", "content": query})
                 reply = openai.ChatCompletion.create(
                     model="gpt-4",
                     messages=st.session_state.chat_history
@@ -307,28 +328,6 @@ if st.session_state.user_type == "user":
                 response = reply.choices[0].message.content
                 st.session_state.chat_history.append({"role": "assistant", "content": response})
                 message(response, is_user=False)
-
-            except sr.UnknownValueError:
-                st.warning("Sorry, could not understand your speech.")
-            except sr.RequestError as e:
-                st.error(f"Speech recognition failed: {e}")
-
-    # --- Text Chat Option ---
-    with st.expander("📨 IntelliHire Private Chat"):
-        with st.form("ai_training_chat", clear_on_submit=True):
-            query = st.text_input("Ask AI Trainer something...")
-            submit = st.form_submit_button("Send")
-        if submit and query:
-            st.session_state.chat_history = st.session_state.chat_history or []
-            st.session_state.chat_history.append({"role": "user", "content": query})
-            reply = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=st.session_state.chat_history
-            )
-            response = reply.choices[0].message.content
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            message(response, is_user=False)
-
 
     elif choice == "Ask LAKS":
         st.header("📚 Ask LAKS Anything")
@@ -338,7 +337,7 @@ if st.session_state.user_type == "user":
         if send and user_input:
             st.session_state.chat_history = st.session_state.chat_history or []
             st.session_state.chat_history.append({"role": "user", "content": user_input})
-            reply = client.chat.completions.create(
+            reply = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=st.session_state.chat_history
             )
