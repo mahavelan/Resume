@@ -151,6 +151,29 @@ if st.session_state.user_type == "owner":
         companies.pop(search_company)
         save_json(companies, COMPANY_FILE)
         st.sidebar.success(f"Deleted {search_company}")
+     # --- Company Registration Form (Below Owner Panel) ---
+    st.subheader("📝 Add a New Company")
+    with st.form("owner_add_company"):
+        cemail = st.text_input("Company Email")
+        cpassword = st.text_input("Password", type="password")
+        cname = st.text_input("Company Name")
+        cbranch = st.text_input("Branch")
+        clocation = st.text_input("Location")
+        cskills = st.text_area("Required Skills (comma-separated)")
+        submit_new = st.form_submit_button("Register Company")
+        if submit_new:
+            if cemail in companies:
+                st.warning("Company already exists!")
+            else:
+                companies[cemail] = {
+                    "password": cpassword,
+                    "skills": [s.strip() for s in cskills.split(",")],
+                    "location": clocation,
+                    "branch": cbranch,
+                    "name": cname
+                }
+                save_json(companies, COMPANY_FILE)
+                st.success("New company registered!")
 
     st.stop()
 
