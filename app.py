@@ -259,34 +259,38 @@ if st.session_state.user_type == "user":
             st.session_state.selected_company = st.selectbox("Select a company to practice with:", list(companies.keys()))
 
         if st.button("Start AI Interview"):
-            company_req = companies[st.session_state.selected_company]["skills"]
-            user_resume = users[st.session_state.user_email]["resume"]
-            level_tag = f"Interview Difficulty: {level}"
+            if st.session_state.selected_company and st.session_state.selected_company in companies:
+               company_req = companies[st.session_state.selected_company].get("skills", [])
+               user_resume = users[st.session_state.user_email].get("resume", "")
+               level_tag = f"Interview Difficulty: {level}"
 
-            prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
+               prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
 
-            response = openai.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": level_tag},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            question = response.choices[0].message.content
-            st.subheader("💬 AI HR Interviewer:")
-            st.info(question)
-            answer = st.text_area("🎧 Your Answer")
+               response = openai.chat.completions.create(
+                   model="gpt-4",
+                   messages=[
+                       {"role": "system", "content": level_tag},
+                       {"role": "user", "content": prompt}
+                   ]
+               )
+               question = response.choices[0].message.content
+               st.subheader("💬 AI HR Interviewer:")
+               st.info(question)
+               answer = st.text_area("🎧 Your Answer")
 
-            if st.button("Submit Answer"):
-                feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
-                feedback = openai.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "Give detailed feedback"},
-                        {"role": "user", "content": feedback_prompt}
-                    ]
-                )
-                st.success(feedback.choices[0].message.content)
+               if st.button("Submit Answer"):
+                   feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
+                   feedback = openai.chat.completions.create(
+                       model="gpt-4",
+                       messages=[
+                           {"role": "system", "content": "Give detailed feedback"},
+                           {"role": "user", "content": feedback_prompt}
+                       ]
+                   )
+                   st.success(feedback.choices[0].message.content)
+       else:
+            st.error("❌ No valid company selected or company not found.")
+
 
     elif choice == "AI Training":
         st.header("🎓 AI Training Session (Simulated Video Call)")
