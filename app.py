@@ -10,9 +10,17 @@ import speech_recognition as sr
 import tempfile
 
 # --- Load API Key ---
-load_dotenv()
-openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+
 # --- Load API key securely ---
+load_dotenv()
+api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+
+# ✅ Create client using v1.x syntax
+client = OpenAI(api_key=api_key)
+
 
 # --- Constants ---
 USER_FILE = "users.json"
