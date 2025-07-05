@@ -201,7 +201,7 @@ if st.session_state.user_type == "user":
 
     choice = st.selectbox("Choose a feature", [
         "Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS", "ATS Resume Fix"
-    ], key="main_user_choice")
+    ])
 
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
