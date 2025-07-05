@@ -1,15 +1,14 @@
 # --- File: app.py ---
 import streamlit as st
+import openai
+from streamlit_chat import message
 import os
 import json
 from dotenv import load_dotenv
-import openai
-from streamlit_chat import message
 
 # --- Load API Key ---
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
-
+load_dotenv()
+openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 
 # --- Constants ---
 USER_FILE = "users.json"
@@ -104,7 +103,7 @@ if not st.session_state.logged_in:
     auth_ui()
     st.stop()
 
-# --- Main Dashboard ---
+# --- Selection UI for Features ---
 st.title("🤖 IntelliHire Dashboard")
 if st.session_state.user_type == "user":
     choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"], key="main_user_choice")
@@ -113,7 +112,7 @@ elif st.session_state.user_type == "company":
 else:
     choice = "Home"
 
-# --- Owner Dashboard ---
+# --- Owner Panel ---
 if st.session_state.user_type == "owner":
     st.title("🛠️ Owner Dashboard")
     st.sidebar.header("Owner Tools")
@@ -151,31 +150,13 @@ if st.session_state.user_type == "owner":
         companies.pop(search_company)
         save_json(companies, COMPANY_FILE)
         st.sidebar.success(f"Deleted {search_company}")
-     # --- Company Registration Form (Below Owner Panel) ---
-    st.subheader("📝 Add a New Company")
-    with st.form("owner_add_company"):
-        cemail = st.text_input("Company Email")
-        cpassword = st.text_input("Password", type="password")
-        cname = st.text_input("Company Name")
-        cbranch = st.text_input("Branch")
-        clocation = st.text_input("Location")
-        cskills = st.text_area("Required Skills (comma-separated)")
-        submit_new = st.form_submit_button("Register Company")
-        if submit_new:
-            if cemail in companies:
-                st.warning("Company already exists!")
-            else:
-                companies[cemail] = {
-                    "password": cpassword,
-                    "skills": [s.strip() for s in cskills.split(",")],
-                    "location": clocation,
-                    "branch": cbranch,
-                    "name": cname
-                }
-                save_json(companies, COMPANY_FILE)
-                st.success("New company registered!")
 
     st.stop()
+
+# --- Placeholder for Full Feature Set ---
+# Continue adding AI Interview, Resume Upload, Profile Creation, etc. features here.
+# This scaffolding avoids duplication bugs and supports modular development.
+
 
 # --- Company Panel ---
 if st.session_state.user_type == "company":
