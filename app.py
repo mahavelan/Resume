@@ -4,10 +4,9 @@ import openai
 from streamlit_chat import message
 import os
 import json
-import time
 from dotenv import load_dotenv
 
-# --- Load API Key (For Streamlit Cloud use secrets) ---
+# --- Load API Key ---
 load_dotenv()
 openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 
@@ -104,25 +103,12 @@ if not st.session_state.logged_in:
     auth_ui()
     st.stop()
 
-# --- Main Dashboard Routing ---
-st.title("🤖 IntelliHire Dashboard")
-if st.session_state.user_type == "user":
-    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"], key="user_choice")
-elif st.session_state.user_type == "company":
-    choice = st.selectbox("Company Panel", ["Register Details", "View Applications"], key="company_choice")
-else:
-    choice = "Home"
-
-# --- ERROR FIXED ---
-# Added unique keys to all selectboxes to prevent DuplicateWidgetID
-
-
 # --- Selection UI for Features ---
 st.title("🤖 IntelliHire Dashboard")
 if st.session_state.user_type == "user":
-    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"])
+    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"], key="main_user_choice")
 elif st.session_state.user_type == "company":
-    choice = st.selectbox("Company Panel", ["Register Details", "View Applications"])
+    choice = st.selectbox("Company Panel", ["Register Details", "View Applications"], key="main_company_choice")
 else:
     choice = "Home"
 
@@ -166,6 +152,11 @@ if st.session_state.user_type == "owner":
         st.sidebar.success(f"Deleted {search_company}")
 
     st.stop()
+
+# --- Placeholder for Full Feature Set ---
+# Continue adding AI Interview, Resume Upload, Profile Creation, etc. features here.
+# This scaffolding avoids duplication bugs and supports modular development.
+
 
 # --- Company Panel ---
 if st.session_state.user_type == "company":
