@@ -1,14 +1,14 @@
 # --- File: app.py ---
 import streamlit as st
-import openai
-from streamlit_chat import message
 import os
 import json
 from dotenv import load_dotenv
+from openai import OpenAI
+from streamlit_chat import message
 
-# --- Load API Key ---
+# --- Load Environment Variables ---
 load_dotenv()
-openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY"))
 
 # --- Constants ---
 USER_FILE = "users.json"
@@ -103,7 +103,7 @@ if not st.session_state.logged_in:
     auth_ui()
     st.stop()
 
-# --- Selection UI for Features ---
+# --- Main Dashboard ---
 st.title("🤖 IntelliHire Dashboard")
 if st.session_state.user_type == "user":
     choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"], key="main_user_choice")
@@ -112,7 +112,7 @@ elif st.session_state.user_type == "company":
 else:
     choice = "Home"
 
-# --- Owner Panel ---
+# --- Owner Dashboard ---
 if st.session_state.user_type == "owner":
     st.title("🛠️ Owner Dashboard")
     st.sidebar.header("Owner Tools")
@@ -153,11 +153,6 @@ if st.session_state.user_type == "owner":
 
     st.stop()
 
-# --- Placeholder for Full Feature Set ---
-# Continue adding AI Interview, Resume Upload, Profile Creation, etc. features here.
-# This scaffolding avoids duplication bugs and supports modular development.
-
-
 # --- Company Panel ---
 if st.session_state.user_type == "company":
     if choice == "Register Details":
@@ -193,10 +188,8 @@ if st.session_state.user_type == "company":
         if not found:
             st.warning("No applications yet.")
 
-# --- User Features ---
-# --- User Features ---
+# --- User Panel ---
 if st.session_state.user_type == "user":
-    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"])
 
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
@@ -250,7 +243,7 @@ if st.session_state.user_type == "user":
 
             prompt = f"You are an AI HR from {st.session_state.selected_company}. Conduct a mock interview for a candidate whose resume includes: {user_resume}. Focus on skills: {company_req}. Ask {level.lower()} level questions."
 
-            response = openai.chat.completions.create(
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": level_tag},
@@ -264,7 +257,7 @@ if st.session_state.user_type == "user":
 
             if st.button("Submit Answer"):
                 feedback_prompt = f"This is the candidate's answer: {answer}. Provide feedback as an HR interviewer."
-                feedback = openai.chat.completions.create(
+                feedback = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "Give detailed feedback"},
@@ -284,7 +277,7 @@ if st.session_state.user_type == "user":
             if submit and query:
                 st.session_state.chat_history = st.session_state.chat_history or []
                 st.session_state.chat_history.append({"role": "user", "content": query})
-                reply = openai.ChatCompletion.create(
+                reply = client.chat.completions.create(
                     model="gpt-4",
                     messages=st.session_state.chat_history
                 )
@@ -300,7 +293,7 @@ if st.session_state.user_type == "user":
         if send and user_input:
             st.session_state.chat_history = st.session_state.chat_history or []
             st.session_state.chat_history.append({"role": "user", "content": user_input})
-            reply = openai.ChatCompletion.create(
+            reply = client.chat.completions.create(
                 model="gpt-4",
                 messages=st.session_state.chat_history
             )
@@ -308,6 +301,5 @@ if st.session_state.user_type == "user":
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             message(response, is_user=False)
 
-    # --- History Management ---
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
