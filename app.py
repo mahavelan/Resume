@@ -3,14 +3,11 @@ import streamlit as st
 import os
 import json
 from dotenv import load_dotenv
-from openai import OpenAI
+import openai
 from streamlit_chat import message
 
-# --- Load Environment Variables ---
-
-
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# --- Load API Key ---
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 
 
