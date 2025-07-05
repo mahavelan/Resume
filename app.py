@@ -15,8 +15,11 @@ from dotenv import load_dotenv
 import os
 
 # --- Load API key securely ---
-openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 
+# --- Load API Key ---
+load_dotenv()
+openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+# --- Load API key securely ---
 
 
 # --- Constants ---
