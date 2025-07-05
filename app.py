@@ -192,6 +192,8 @@ if st.session_state.user_type == "company":
 # --- User Features ---
 # --- User Features ---
 if st.session_state.user_type == "user":
+    choice = st.selectbox("Choose a feature", ["Create Profile", "Upload Resume", "Interview Dashboard", "AI Training", "Ask LAKS"])
+
     if choice == "Create Profile":
         st.header("👤 Create Your Profile")
         with st.form("profile_form"):
@@ -268,8 +270,23 @@ if st.session_state.user_type == "user":
                 st.success(feedback.choices[0].message.content)
 
     elif choice == "AI Training":
-        st.header("🎓 AI Training Session (Audio Only)")
-        st.write("This feature will simulate a voice-only interview. Future updates may include real audio processing.")
+        st.header("🎓 AI Training Session (Simulated Video Call)")
+        st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
+        st.write("(In future: integrate live audio recognition & feedback.)")
+        with st.expander("📨 IntelliHire Private Chat"):
+            with st.form("ai_training_chat", clear_on_submit=True):
+                query = st.text_input("Ask AI Trainer something...")
+                submit = st.form_submit_button("Send")
+            if submit and query:
+                st.session_state.chat_history = st.session_state.chat_history or []
+                st.session_state.chat_history.append({"role": "user", "content": query})
+                reply = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=st.session_state.chat_history
+                )
+                response = reply.choices[0].message.content
+                st.session_state.chat_history.append({"role": "assistant", "content": response})
+                message(response, is_user=False)
 
     elif choice == "Ask LAKS":
         st.header("📚 Ask LAKS Anything")
@@ -287,8 +304,6 @@ if st.session_state.user_type == "user":
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             message(response, is_user=False)
 
-# --- History Management ---
-if st.button("Clear Chat History"):
-    st.session_state.chat_history = []
-
-
+    # --- History Management ---
+    if st.button("Clear Chat History"):
+        st.session_state.chat_history = []
