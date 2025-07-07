@@ -295,7 +295,10 @@ if st.session_state.user_type == "user":
     elif choice == "AI Training":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
-
+        
+        if "chat_history" not in st.session_state:
+             st.session_state.chat_history = []
+        
         st.subheader("🎙️ Speak to AI Trainer")
         audio_data = mic_recorder(start_prompt="🎙️ Click to Start Speaking", stop_prompt="⏹️ Stop", key="mic")
 
@@ -315,7 +318,6 @@ if st.session_state.user_type == "user":
                     text_query = recognizer.recognize_google(audio)
                     st.success(f"🚣️ You said: {text_query}")
 
-                    st.session_state.chat_history = st.session_state.get("chat_history", [])
                     st.session_state.chat_history.append({"role": "user", "content": text_query})
 
                     reply = openai.chat.completions.create(
@@ -339,7 +341,6 @@ if st.session_state.user_type == "user":
                 query = st.text_input("Ask AI Trainer something...")
                 submit = st.form_submit_button("Send")
             if submit and query:
-                st.session_state.chat_history = st.session_state.get("chat_history", [])
                 st.session_state.chat_history.append({"role": "user", "content": query})
                 reply = openai.chat.completions.create(
                     model="gpt-4",
