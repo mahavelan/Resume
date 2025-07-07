@@ -296,7 +296,7 @@ if st.session_state.user_type == "user":
         st.header("🎓 AI Training Session (Simulated Video Call)")
         st.info("Simulated video/audio-only interface. Mic stays active. You can chat with AI in the IntelliHire Chatbox.")
         
-        if "chat_history" not in st.session_state:
+        if "chat_history" not in st.session_state or not isinstance(st.session_state.chat_history, list):
              st.session_state.chat_history = []
         
         st.subheader("🎙️ Speak to AI Trainer")
