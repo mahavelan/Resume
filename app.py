@@ -18,7 +18,7 @@ import os
 
 # --- Load API Key ---
 load_dotenv()
-openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets.get("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") or os.getenv("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")
 # --- Load API key securely ---
 
 
